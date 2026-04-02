@@ -1,0 +1,27 @@
+{
+  "name": "contract-creator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sagehawk/Contract-Creator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sagehawk/Contract-Creator/issues"
+  },
+  "homepage": "https://github.com/sagehawk/Contract-Creator#readme",
+  "description": "",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.4.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
