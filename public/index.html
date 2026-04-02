@@ -139,6 +139,12 @@
             <span id="thinkingText" class="text-sm text-blue-300 font-medium">Agent is thinking...</span>
           </div>
         </div>
+
+        <!-- Stop button (visible during processing) -->
+        <button id="stopBtn" onclick="stopGeneration()" class="mt-3 w-full py-3 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-red-600/80 to-red-500/80 hover:from-red-500 hover:to-red-400 transition-all duration-200 hover:shadow-[0_0_30px_rgba(239,68,68,.3)] flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          Stop Generation
+        </button>
       </div>
     </div>
   </div>
