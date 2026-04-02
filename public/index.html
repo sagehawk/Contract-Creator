@@ -1,286 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChainForge AI — Proposal Generator</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ChainForge AI — Autonomous Proposal Agent</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            navy: { 950: '#03071e', 900: '#050d2d', 800: '#0a1554', 700: '#0d1b6e' },
-            electric: { 400: '#4d9fff', 500: '#1a7fff', 600: '#005ce6' }
-          },
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
-          animation: {
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'fade-in': 'fadeIn 0.6s ease-out forwards',
-            'slide-up': 'slideUp 0.5s ease-out forwards',
-            'spin-slow': 'spin 2s linear infinite',
-          },
-          keyframes: {
-            fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-            slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-          }
+      theme: { extend: {
+        fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+        animation: {
+          'fade-in': 'fadeIn .5s ease-out forwards',
+          'slide-in': 'slideIn .4s ease-out forwards',
+          'pulse-dot': 'pulseDot 2s ease-in-out infinite',
+        },
+        keyframes: {
+          fadeIn: { from:{opacity:'0'}, to:{opacity:'1'} },
+          slideIn: { from:{opacity:'0',transform:'translateY(12px)'}, to:{opacity:'1',transform:'translateY(0)'} },
+          pulseDot: { '0%,100%':{opacity:'1',transform:'scale(1)'}, '50%':{opacity:'.4',transform:'scale(.8)'} },
         }
-      }
+      }}
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     body { background: #03071e; }
-    .gradient-text {
-      background: linear-gradient(135deg, #4d9fff 0%, #a78bfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .glass {
-      background: rgba(255,255,255,0.03);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .glow { box-shadow: 0 0 40px rgba(77,159,255,0.15), 0 0 80px rgba(77,159,255,0.05); }
-    .btn-glow { box-shadow: 0 0 30px rgba(29,127,255,0.4); }
-    .input-field {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: all 0.2s ease;
-    }
-    .input-field:focus {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(77,159,255,0.5);
-      box-shadow: 0 0 0 3px rgba(77,159,255,0.1);
-      outline: none;
-    }
-    .log-entry { animation: slideUp 0.3s ease-out forwards; opacity: 0; }
-    @keyframes shimmer {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
-    }
-    .shimmer-btn {
-      background: linear-gradient(135deg, #1a7fff 0%, #7c3aed 50%, #1a7fff 100%);
-      background-size: 200% auto;
-      transition: background-position 0.5s ease, transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .shimmer-btn:hover { background-position: right center; transform: translateY(-1px); box-shadow: 0 0 40px rgba(29,127,255,0.5); }
-    .shimmer-btn:active { transform: translateY(0); }
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      opacity: 0.15;
-    }
+    .gradient-text { background: linear-gradient(135deg,#4d9fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .glass { background: rgba(255,255,255,.025); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.07); }
+    .feed-entry { opacity:0; animation: slideIn .35s ease-out forwards; }
+    .orb { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; }
+    #proposalFrame { border:none; width:100%; height:100vh; opacity:0; transition: opacity .8s ease-in-out; }
+    #proposalFrame.visible { opacity:1; }
+    .input-field { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); transition:all .2s; }
+    .input-field:focus { background:rgba(255,255,255,.06); border-color:rgba(77,159,255,.5); box-shadow:0 0 0 3px rgba(77,159,255,.1); outline:none; }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
   </style>
 </head>
 <body class="font-sans text-white min-h-screen overflow-x-hidden">
 
   <!-- Background orbs -->
-  <div class="orb w-96 h-96 bg-blue-500 top-[-100px] left-[-100px]"></div>
-  <div class="orb w-80 h-80 bg-purple-600 top-[40%] right-[-80px]"></div>
-  <div class="orb w-64 h-64 bg-blue-400 bottom-[10%] left-[20%]"></div>
+  <div class="orb w-96 h-96 bg-blue-600/20 -top-32 -left-32"></div>
+  <div class="orb w-80 h-80 bg-purple-600/15 top-1/2 -right-20"></div>
 
-  <div class="relative z-10 min-h-screen flex flex-col">
+  <!-- ==================== PHASE 1: Input + Feed ==================== -->
+  <div id="phase1" class="relative z-10 min-h-screen flex flex-col">
 
     <!-- Nav -->
-    <nav class="flex items-center justify-between px-8 py-5 glass border-b border-white/5">
-      <div class="flex items-center gap-3">
+    <nav class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+      <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
         <span class="font-bold text-lg tracking-tight">ChainForge <span class="text-blue-400">AI</span></span>
       </div>
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow"></div>
-        <span class="text-xs text-white/50 font-medium uppercase tracking-widest">Agent Online</span>
+      <div class="flex items-center gap-4">
+        <div id="timer" class="hidden text-xs font-mono text-slate-500">00:00</div>
+        <div id="tokenCount" class="hidden text-xs font-mono text-slate-600"></div>
+        <div class="flex items-center gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-dot"></div>
+          <span class="text-[11px] text-white/40 font-medium uppercase tracking-widest">Agent Online</span>
+        </div>
       </div>
     </nav>
 
-    <!-- Hero -->
-    <div class="flex-1 flex flex-col items-center justify-center px-6 py-16">
-      <div class="max-w-2xl w-full mx-auto text-center mb-12">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-blue-300 font-medium mb-8 border border-blue-500/20">
+    <!-- Main -->
+    <div class="flex-1 flex flex-col items-center px-6 py-8">
+
+      <!-- Hero -->
+      <div id="heroBlock" class="text-center mb-10 transition-all duration-500">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-blue-300 font-medium mb-6 border border-blue-500/20">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-          Powered by Claude Sonnet — ReAct Agent Loop
+          Powered by Claude &middot; Autonomous ReAct Loop
         </div>
-        <h1 class="text-5xl font-black tracking-tight leading-tight mb-5">
-          Generate a<br/>
-          <span class="gradient-text">Personalized Proposal</span><br/>
-          in seconds.
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
+          Watch the Agent<br/><span class="gradient-text">Build Your Proposal</span>
         </h1>
-        <p class="text-lg text-white/50 leading-relaxed max-w-lg mx-auto">
-          The AI agent researches your prospect, pulls live pricing, and synthesizes a fully designed HTML proposal — autonomously.
-        </p>
+        <p class="text-base text-white/40 max-w-md mx-auto">Real-time operational transparency. Every thought, tool call, and decision — live.</p>
       </div>
 
-      <!-- Form Card -->
-      <div class="max-w-lg w-full mx-auto glass rounded-2xl p-8 glow">
-        <form id="form" onsubmit="handleSubmit(event)" class="space-y-5">
+      <!-- Input Card -->
+      <div id="inputCard" class="w-full max-w-xl mx-auto glass rounded-2xl p-6 mb-6 transition-all duration-500">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           <div>
-            <label class="block text-xs font-semibold text-white/60 uppercase tracking-widest mb-2">
-              Target Client
-            </label>
-            <input
-              id="clientName"
-              type="text"
-              placeholder="e.g. Globex Corp"
-              value="Globex Corp"
-              class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm font-medium"
-            />
+            <label class="block text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-1.5">Target Company</label>
+            <input id="clientName" type="text" value="Globex Corp" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white placeholder-white/20 text-sm font-medium"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-white/60 uppercase tracking-widest mb-2">
-              Product Tier
-            </label>
-            <input
-              id="productTier"
-              type="text"
-              placeholder="e.g. Enterprise Logistics API"
-              value="Enterprise Logistics API"
-              class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm font-medium"
-            />
+            <label class="block text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-1.5">Product Tier</label>
+            <input id="productTier" type="text" value="Enterprise Logistics API" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white placeholder-white/20 text-sm font-medium"/>
           </div>
-          <button
-            type="submit"
-            id="submitBtn"
-            class="shimmer-btn w-full py-3.5 rounded-xl font-bold text-sm tracking-wide btn-glow"
-          >
-            Generate Proposal →
-          </button>
-        </form>
-      </div>
-
-      <!-- Agent Log (shown during generation) -->
-      <div id="logPanel" class="hidden max-w-lg w-full mx-auto mt-6">
-        <div class="glass rounded-2xl p-6 space-y-3">
-          <div class="flex items-center gap-2 mb-4">
-            <svg id="spinner" class="w-4 h-4 text-blue-400 animate-spin-slow" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-            <span class="text-xs font-semibold text-white/60 uppercase tracking-widest">Agent Monologue</span>
-          </div>
-          <div id="logEntries" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
         </div>
+        <button id="btnGenerate" onclick="startGeneration()" class="w-full py-3 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition-all duration-200 hover:shadow-[0_0_30px_rgba(77,159,255,.3)]">
+          Generate Autonomous Proposal
+        </button>
       </div>
 
-      <!-- Error -->
-      <div id="errorPanel" class="hidden max-w-lg w-full mx-auto mt-6">
-        <div class="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-300"></div>
+      <!-- Live Agent Feed -->
+      <div id="feedContainer" class="hidden w-full max-w-3xl mx-auto flex-1 flex flex-col min-h-0">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="text-[11px] font-semibold text-white/40 uppercase tracking-widest">ReAct Loop</div>
+          <div id="stepBadge" class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-bold">Step 1</div>
+          <div class="flex-1"></div>
+          <div id="statusDot" class="flex items-center gap-1.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse-dot"></div>
+            <span id="statusText" class="text-[11px] text-white/40 font-medium">Initializing...</span>
+          </div>
+        </div>
+        <div id="feed" class="flex-1 overflow-y-auto pr-2 space-y-2 pb-4" style="max-height:calc(100vh - 200px);"></div>
       </div>
-
     </div>
+  </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-6 text-xs text-white/20">
-      ChainForge AI · Autonomous Sales Agent · Built with Anthropic Claude
-    </footer>
+  <!-- ==================== PHASE 2: Proposal Reveal ==================== -->
+  <div id="phase2" class="fixed inset-0 z-50 hidden" style="background:#03071e;">
+    <div class="fixed top-4 left-4 z-[60]">
+      <button onclick="showFeed()" class="flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs text-white/60 hover:text-white/90 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Back to Agent Feed
+      </button>
+    </div>
+    <iframe id="proposalFrame"></iframe>
   </div>
 
   <script>
-    const logTypeStyles = {
-      reasoning:   { label: 'REASONING',   color: 'text-purple-300',  dot: 'bg-purple-400' },
-      action:      { label: 'ACTION',      color: 'text-yellow-300',  dot: 'bg-yellow-400' },
-      observation: { label: 'OBSERVATION', color: 'text-emerald-300', dot: 'bg-emerald-400' },
+    let eventSource = null, timerInterval = null, startTime = 0;
+    let totalTokensIn = 0, totalTokensOut = 0, entryIndex = 0;
+
+    const typeConfig = {
+      connected:   { icon:'&#9889;', label:'CONNECTED',   color:'text-blue-300',    bg:'border-blue-500/10' },
+      step:        { icon:'&#8594;', label:'STEP',        color:'text-white/70',    bg:'border-white/5' },
+      status:      { icon:'&#9702;', label:'STATUS',      color:'text-slate-400',   bg:'border-slate-500/10' },
+      reasoning:   { icon:'&#129504;', label:'REASONING', color:'text-purple-300',  bg:'border-purple-500/10' },
+      action:      { icon:'&#9881;', label:'ACTION',      color:'text-amber-300',   bg:'border-amber-500/10' },
+      observation: { icon:'&#128225;', label:'OBSERVATION',color:'text-emerald-300', bg:'border-emerald-500/10' },
+      error:       { icon:'&#10005;', label:'ERROR',      color:'text-red-400',     bg:'border-red-500/10' },
     };
 
-    let logIndex = 0;
+    function addEntry(type, content, meta) {
+      const feed = document.getElementById('feed');
+      const cfg = typeConfig[type] ?? typeConfig.status;
+      const el = document.createElement('div');
+      el.className = `feed-entry border-l-2 ${cfg.bg} pl-4 py-2`;
+      el.style.animationDelay = `${Math.min(entryIndex * 30, 150)}ms`;
+      let h = '';
 
-    function appendLog(type, content) {
-      const panel = document.getElementById('logEntries');
-      const style = logTypeStyles[type] ?? { label: type.toUpperCase(), color: 'text-white/60', dot: 'bg-white/40' };
-      const entry = document.createElement('div');
-      entry.className = `log-entry flex gap-2.5 items-start`;
-      entry.style.animationDelay = `${logIndex * 60}ms`;
-      entry.innerHTML = `
-        <span class="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${style.dot}"></span>
-        <div class="min-w-0">
-          <span class="text-[10px] font-bold tracking-widest ${style.color} mr-2">${style.label}</span>
-          <span class="text-xs text-white/50 break-words">${escapeHtml(content.slice(0, 200))}</span>
-        </div>
-      `;
-      panel.appendChild(entry);
-      panel.scrollTop = panel.scrollHeight;
-      logIndex++;
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    function setLoading(loading) {
-      const btn = document.getElementById('submitBtn');
-      if (loading) {
-        btn.disabled = true;
-        btn.textContent = 'Agent is thinking…';
-        btn.style.opacity = '0.7';
-        btn.style.cursor = 'not-allowed';
-        document.getElementById('logPanel').classList.remove('hidden');
-        document.getElementById('errorPanel').classList.add('hidden');
-        document.getElementById('logEntries').innerHTML = '';
-        logIndex = 0;
+      if (type === 'step') {
+        el.className = 'feed-entry pl-0 py-1';
+        h = `<div class="flex items-center gap-2 py-1"><div class="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent"></div><span class="text-[11px] font-bold text-blue-400 uppercase tracking-widest">ReAct Step ${meta?.step??'?'}</span><div class="h-px flex-1 bg-gradient-to-l from-blue-500/30 to-transparent"></div></div>`;
+      } else if (type === 'reasoning') {
+        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div><div class="mt-1.5 text-sm text-slate-300/80 leading-relaxed">${escH(content)}</div>`;
+      } else if (type === 'action') {
+        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div>
+        <div class="mt-1.5 flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 text-xs font-bold font-mono">${escH(meta?.tool??'')}</span></div>
+        ${meta?.args ? `<div class="mt-1 text-xs text-slate-500 font-mono break-all max-h-20 overflow-hidden">${escH(meta.args.slice(0,200))}</div>` : ''}`;
+      } else if (type === 'observation') {
+        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div>
+        <div class="mt-1.5"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 text-xs font-bold font-mono">${escH(meta?.tool??'')} returned</span></div>
+        <div class="mt-1 text-xs text-slate-400 font-mono leading-relaxed max-h-32 overflow-hidden">${escH(content.slice(0,400))}${content.length>400?'...':''}</div>`;
+      } else if (type === 'error') {
+        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color}">${cfg.icon} ${cfg.label}</span></div><div class="mt-1.5 text-sm text-red-300">${escH(content)}</div>`;
       } else {
-        btn.disabled = false;
-        btn.textContent = 'Generate Proposal →';
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-        document.getElementById('spinner').classList.remove('animate-spin-slow');
+        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color}">${cfg.icon} ${cfg.label}</span></div><div class="mt-1 text-xs text-slate-400">${escH(content)}</div>`;
       }
+
+      el.innerHTML = h;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
+      entryIndex++;
     }
 
-    async function handleSubmit(e) {
-      e.preventDefault();
-      const clientName = document.getElementById('clientName').value.trim() || 'Globex Corp';
-      const productTier = document.getElementById('productTier').value.trim() || 'Enterprise Logistics API';
+    function escH(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-      setLoading(true);
-      appendLog('reasoning', `Starting agent for "${clientName}" — ${productTier}`);
+    function startTimer() {
+      startTime = Date.now();
+      const el = document.getElementById('timer');
+      el.classList.remove('hidden');
+      timerInterval = setInterval(() => {
+        const s = Math.floor((Date.now()-startTime)/1000);
+        el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+      }, 250);
+    }
+    function stopTimer() { clearInterval(timerInterval); }
 
-      try {
-        const res = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientName, productTier }),
-        });
+    function updateTokens(i,o) {
+      totalTokensIn+=i; totalTokensOut+=o;
+      const el=document.getElementById('tokenCount');
+      el.classList.remove('hidden');
+      el.textContent=`${totalTokensIn.toLocaleString()} in / ${totalTokensOut.toLocaleString()} out`;
+    }
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-          throw new Error(err.error ?? `Server error ${res.status}`);
-        }
+    function startGeneration() {
+      const cn = document.getElementById('clientName').value.trim()||'Globex Corp';
+      const pt = document.getElementById('productTier').value.trim()||'Enterprise Logistics API';
 
-        const data = await res.json();
+      // Collapse inputs
+      ['heroBlock','inputCard'].forEach(id => {
+        const el=document.getElementById(id);
+        el.style.maxHeight='0'; el.style.overflow='hidden'; el.style.opacity='0'; el.style.margin='0'; el.style.padding='0';
+      });
 
-        // Show agent log entries
-        if (data.log) {
-          for (const entry of data.log) {
-            appendLog(entry.type, entry.content);
-          }
-        }
+      document.getElementById('feedContainer').classList.remove('hidden');
+      document.getElementById('feedContainer').classList.add('flex');
+      document.getElementById('feed').innerHTML='';
+      entryIndex=0; totalTokensIn=0; totalTokensOut=0;
+      startTimer();
 
-        appendLog('observation', `Proposal generated — opening in new tab…`);
-        setLoading(false);
+      const params=new URLSearchParams({clientName:cn,productTier:pt});
+      eventSource=new EventSource(`/api/stream?${params}`);
 
-        // Open the HTML proposal in a new tab
-        const blob = new Blob([data.html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+      eventSource.addEventListener('connected', e=>{ const d=JSON.parse(e.data); addEntry('connected',d.message); document.getElementById('statusText').textContent='Connected'; });
+      eventSource.addEventListener('step', e=>{ const d=JSON.parse(e.data); addEntry('step','',d); document.getElementById('stepBadge').textContent=`Step ${d.step}`; });
+      eventSource.addEventListener('status', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=d.message; });
+      eventSource.addEventListener('reasoning', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent='Reasoning...'; addEntry('reasoning',d.content); });
+      eventSource.addEventListener('action', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=`Calling ${d.tool}...`; addEntry('action','',d); });
+      eventSource.addEventListener('observation', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=`${d.tool} returned`; addEntry('observation',d.result,d); });
+      eventSource.addEventListener('tokens', e=>{ const d=JSON.parse(e.data); updateTokens(d.input,d.output); });
 
-        // Clean up blob URL after a delay
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      eventSource.addEventListener('complete', e=>{
+        const d=JSON.parse(e.data);
+        stopTimer();
+        document.getElementById('statusText').textContent='Proposal ready';
+        document.getElementById('statusDot').querySelector('div').className='w-1.5 h-1.5 rounded-full bg-emerald-400';
+        addEntry('connected','Proposal generated successfully. Revealing...');
+        eventSource.close(); eventSource=null;
+        setTimeout(()=>revealProposal(d.html), 1200);
+      });
 
-      } catch (err) {
-        setLoading(false);
-        const panel = document.getElementById('errorPanel');
-        panel.classList.remove('hidden');
-        panel.querySelector('div').textContent = `Error: ${err.message}`;
-        appendLog('observation', `Failed: ${err.message}`);
-      }
+      eventSource.addEventListener('error', e=>{
+        try{ const d=JSON.parse(e.data); addEntry('error',d.message); } catch{ addEntry('error','Connection lost'); }
+        stopTimer();
+        document.getElementById('statusText').textContent='Error';
+        if(eventSource){eventSource.close();eventSource=null;}
+      });
+
+      eventSource.onerror=()=>{};
+    }
+
+    function revealProposal(html) {
+      const p2=document.getElementById('phase2'), fr=document.getElementById('proposalFrame');
+      p2.classList.remove('hidden');
+      fr.srcdoc=html;
+      fr.onload=()=>requestAnimationFrame(()=>fr.classList.add('visible'));
+    }
+
+    function showFeed() {
+      const fr=document.getElementById('proposalFrame');
+      fr.classList.remove('visible');
+      setTimeout(()=>{ document.getElementById('phase2').classList.add('hidden'); fr.srcdoc=''; }, 400);
     }
   </script>
 </body>
