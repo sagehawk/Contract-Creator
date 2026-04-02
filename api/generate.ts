@@ -1,9 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Anthropic from "@anthropic-ai/sdk";
 
-// ─────────────────────────────────────────────────────────────
-//  Vercel serverless config
-// ─────────────────────────────────────────────────────────────
 export const maxDuration = 120;
 
 // ─────────────────────────────────────────────────────────────
@@ -11,8 +8,7 @@ export const maxDuration = 120;
 // ─────────────────────────────────────────────────────────────
 function researchClient(name: string): string {
   const research: Record<string, string> = {
-    "Globex Corp": `
-COMPANY: Globex Corp | Industry: Global Manufacturing & Distribution | HQ: Chicago, IL | Revenue: $4.2B (FY2025)
+    "Globex Corp": `COMPANY: Globex Corp | Industry: Global Manufacturing & Distribution | HQ: Chicago, IL | Revenue: $4.2B (FY2025)
 
 RECENT NEWS:
 - Q1 2026: Globex announced a $180M warehouse automation initiative across 12 fulfillment centers in North America and Europe.
@@ -30,14 +26,12 @@ PAIN POINTS IDENTIFIED:
 KEY DECISION MAKERS:
 - CEO: Margaret Chen (champion of digital transformation)
 - CTO: David Park (pushing for API-first architecture)
-- VP Supply Chain: Carlos Rivera (frustrated with current vendor lock-in)
-    `.trim(),
+- VP Supply Chain: Carlos Rivera (frustrated with current vendor lock-in)`,
   };
 
   return (
     research[name] ??
-    `
-COMPANY: ${name} | Industry: Technology & Services | Revenue: $800M (estimated)
+    `COMPANY: ${name} | Industry: Technology & Services | Revenue: $800M (estimated)
 
 RECENT NEWS:
 - Q1 2026: ${name} is undergoing a major digital transformation, consolidating legacy systems into a modern cloud-native stack.
@@ -53,8 +47,7 @@ PAIN POINTS IDENTIFIED:
 
 KEY DECISION MAKERS:
 - CTO: Actively seeking API-first, developer-friendly platforms.
-- VP Operations: Needs immediate relief for order fulfillment bottlenecks.
-  `.trim()
+- VP Operations: Needs immediate relief for order fulfillment bottlenecks.`
   );
 }
 
@@ -82,24 +75,9 @@ function getPricing(tier: string): string {
           "Choice of US, EU, or APAC data regions with full GDPR/SOC2 compliance",
       },
       addOns: [
-        {
-          name: "Predictive Analytics Module",
-          price: "$4,200/mo",
-          description:
-            "ML-powered demand forecasting, anomaly detection, and route optimization",
-        },
-        {
-          name: "Carbon Tracking & ESG Reporting",
-          price: "$2,800/mo",
-          description:
-            "Automated Scope 3 emissions calculation, EU CBAM-ready reports, sustainability dashboards",
-        },
-        {
-          name: "EDI Gateway",
-          price: "$3,100/mo",
-          description:
-            "Drop-in EDI-to-API bridge for legacy partner systems (supports X12, EDIFACT, AS2)",
-        },
+        { name: "Predictive Analytics Module", price: "$4,200/mo", description: "ML-powered demand forecasting, anomaly detection, and route optimization" },
+        { name: "Carbon Tracking & ESG Reporting", price: "$2,800/mo", description: "Automated Scope 3 emissions calculation, EU CBAM-ready reports, sustainability dashboards" },
+        { name: "EDI Gateway", price: "$3,100/mo", description: "Drop-in EDI-to-API bridge for legacy partner systems (supports X12, EDIFACT, AS2)" },
       ],
     },
   };
@@ -108,27 +86,11 @@ function getPricing(tier: string): string {
     pricing[tier] ?? {
       tier,
       setupFee: "$25,000",
-      setupDescription:
-        "Standard onboarding with integration support and data migration",
-      monthly: {
-        base: "$8,500/mo",
-        includes: "Up to 250K API calls/mo, 20 connections, real-time tracking",
-        overage: "$0.012 per additional API call",
-      },
+      setupDescription: "Standard onboarding with integration support and data migration",
+      monthly: { base: "$8,500/mo", includes: "Up to 250K API calls/mo, 20 connections, real-time tracking", overage: "$0.012 per additional API call" },
       annualCommitDiscount: "12% discount on annual commitment",
-      sla: {
-        uptime: "99.9% guaranteed",
-        responseTime: "< 300ms p95 latency",
-        support: "Business hours support + dedicated account manager",
-        incidentResponse: "P1: 30min, P2: 2hr, P3: 8hr",
-      },
-      addOns: [
-        {
-          name: "Analytics Module",
-          price: "$3,000/mo",
-          description: "Demand forecasting and reporting dashboards",
-        },
-      ],
+      sla: { uptime: "99.9% guaranteed", responseTime: "< 300ms p95 latency", support: "Business hours support + dedicated account manager", incidentResponse: "P1: 30min, P2: 2hr, P3: 8hr" },
+      addOns: [{ name: "Analytics Module", price: "$3,000/mo", description: "Demand forecasting and reporting dashboards" }],
     },
     null,
     2
@@ -136,121 +98,227 @@ function getPricing(tier: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Tool Definitions
+//  Proposal Template
+// ─────────────────────────────────────────────────────────────
+interface ProposalData {
+  companyName: string;
+  tagline: string;
+  executiveSummary: string;
+  painPoints: { title: string; description: string }[];
+  whyUsBullets: { heading: string; detail: string }[];
+  pricingBreakdown: {
+    planName: string;
+    setupFee: string;
+    monthlyFee: string;
+    setupDescription: string;
+    includedFeatures: string[];
+    sla: { label: string; value: string }[];
+    addOns: { name: string; price: string; reason: string }[];
+  };
+  roiProjections: { metric: string; value: string }[];
+  estimatedAnnualSavings: string;
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function buildProposalHTML(data: ProposalData): string {
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const painPointCards = data.painPoints.map((p) => `
+        <div class="bg-red-500/5 border border-red-500/10 rounded-xl p-5">
+          <div class="font-semibold text-white text-sm">${esc(p.title)}</div>
+          <div class="text-slate-400 text-sm mt-1">${esc(p.description)}</div>
+        </div>`).join("");
+
+  const whyUsItems = data.whyUsBullets.map((b) => `
+        <div class="flex gap-4 items-start">
+          <div class="mt-1 flex-shrink-0 w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-white">${esc(b.heading)}</div>
+            <div class="text-slate-400 text-sm mt-1">${esc(b.detail)}</div>
+          </div>
+        </div>`).join("");
+
+  const features = data.pricingBreakdown.includedFeatures.map((f) => `
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-slate-300 text-sm">${esc(f)}</span>
+            </li>`).join("");
+
+  const slaCards = data.pricingBreakdown.sla.map((s) => `
+          <div class="bg-white/[0.03] rounded-xl p-4 text-center border border-white/5">
+            <div class="text-lg font-bold text-blue-300">${esc(s.value)}</div>
+            <div class="text-xs text-slate-500 mt-1">${esc(s.label)}</div>
+          </div>`).join("");
+
+  const addOnRows = data.pricingBreakdown.addOns.map((a) => `
+          <tr class="border-b border-white/5">
+            <td class="py-4 pr-4">
+              <div class="font-semibold text-white">${esc(a.name)}</div>
+              <div class="text-sm text-blue-300/80 mt-1 italic">&rarr; ${esc(a.reason)}</div>
+            </td>
+            <td class="py-4 text-right font-mono font-bold text-blue-300 whitespace-nowrap align-top">${esc(a.price)}</td>
+          </tr>`).join("");
+
+  const roiCards = data.roiProjections.map((r) => `
+          <div class="bg-white/[0.03] rounded-xl p-5 text-center border border-white/5">
+            <div class="text-2xl font-black text-white">${esc(r.value)}</div>
+            <div class="text-sm text-slate-400 mt-1">${esc(r.metric)}</div>
+          </div>`).join("");
+
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ChainForge AI — Proposal for ${esc(data.companyName)}</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}<\/script>
+<style>body{background:#03071e}.gradient-text{background:linear-gradient(135deg,#4d9fff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}</style>
+</head><body class="font-sans text-white min-h-screen">
+<div class="relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10" style="background:radial-gradient(ellipse at 30% 0%,#1a7fff,transparent 60%),radial-gradient(ellipse at 70% 100%,#7c3aed,transparent 60%)"></div>
+  <div class="relative max-w-5xl mx-auto px-8 pt-12 pb-8">
+    <div class="flex items-center gap-3 mb-12"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div><span class="font-bold text-xl tracking-tight">ChainForge <span class="text-blue-400">AI</span></span></div>
+    <div class="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-4">Partnership Proposal</div>
+    <h1 class="text-5xl font-black tracking-tight leading-tight mb-4">Prepared for <span class="gradient-text">${esc(data.companyName)}</span></h1>
+    <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">${esc(data.tagline)}</p>
+    <div class="mt-6 text-sm text-slate-500">${today} &middot; Confidential</div>
+  </div>
+</div>
+<div class="max-w-5xl mx-auto px-8 py-12 space-y-16">
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">01</span>Executive Summary</h2><div class="glass rounded-2xl p-8"><p class="text-slate-300 leading-relaxed text-lg">${esc(data.executiveSummary)}</p></div></section>
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">02</span>Challenges We Identified</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${painPointCards}</div></section>
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">03</span>Why ChainForge AI</h2><div class="glass rounded-2xl p-8 space-y-6">${whyUsItems}</div></section>
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">04</span>Investment</h2>
+    <div class="glass rounded-2xl p-8">
+      <div class="flex items-baseline justify-between mb-6 pb-6 border-b border-white/10"><div><div class="text-lg font-bold">${esc(data.pricingBreakdown.planName)}</div><div class="text-sm text-slate-400 mt-1">${esc(data.pricingBreakdown.setupDescription)}</div></div><div class="text-right"><div class="text-3xl font-black text-white">${esc(data.pricingBreakdown.monthlyFee)}</div><div class="text-sm text-slate-400">+ ${esc(data.pricingBreakdown.setupFee)} one-time setup</div></div></div>
+      <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">${features}</ul>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">${slaCards}</div>
+      <h3 class="text-lg font-bold mb-4">Recommended Add-Ons for ${esc(data.companyName)}</h3>
+      <table class="w-full">${addOnRows}</table>
+    </div>
+  </section>
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">05</span>Projected ROI</h2>
+    <div class="glass rounded-2xl p-8"><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">${roiCards}</div>
+      <div class="text-center mt-6 py-5 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20"><div class="text-sm text-slate-400 mb-1">Estimated Annual Savings</div><div class="text-4xl font-black gradient-text">${esc(data.estimatedAnnualSavings)}</div></div>
+    </div>
+  </section>
+  <section><h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black">06</span>Agreement</h2>
+    <div class="glass rounded-2xl p-8">
+      <p class="text-slate-400 text-sm leading-relaxed mb-8">By signing below, both parties agree to proceed with the ${esc(data.pricingBreakdown.planName)} engagement as outlined in this proposal. This agreement is subject to ChainForge AI's standard Terms of Service and the SLA guarantees specified above. The initial term is 12 months from the date of execution.</p>
+      <div class="grid grid-cols-2 gap-12">
+        <div><div class="text-xs text-slate-500 uppercase tracking-widest mb-4">For ${esc(data.companyName)}</div><div class="border-b border-white/20 pb-2 mb-2 h-12"></div><div class="text-sm text-slate-500">Authorized Signature</div><div class="border-b border-white/20 pb-2 mb-2 mt-6 h-8"></div><div class="text-sm text-slate-500">Date</div></div>
+        <div><div class="text-xs text-slate-500 uppercase tracking-widest mb-4">For ChainForge AI</div><div class="border-b border-white/20 pb-2 mb-2 h-12"></div><div class="text-sm text-slate-500">Authorized Signature</div><div class="border-b border-white/20 pb-2 mb-2 mt-6 h-8"></div><div class="text-sm text-slate-500">Date</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+<footer class="text-center py-8 text-xs text-slate-600">ChainForge AI &middot; Confidential &middot; Generated ${today}</footer>
+</body></html>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Tool Definitions for Anthropic API
 // ─────────────────────────────────────────────────────────────
 const tools: Anthropic.Messages.Tool[] = [
   {
     name: "researchClient",
-    description:
-      "Researches a target client company and returns recent news, financial data, key decision makers, and identified pain points relevant to supply chain and logistics.",
+    description: "Researches a target client company and returns recent news, financial data, key decision makers, and identified pain points relevant to supply chain and logistics.",
     input_schema: {
       type: "object" as const,
-      properties: {
-        clientName: {
-          type: "string",
-          description: "The name of the client company to research",
-        },
-      },
+      properties: { clientName: { type: "string", description: "The name of the client company to research" } },
       required: ["clientName"],
     },
   },
   {
     name: "getPricing",
-    description:
-      "Retrieves detailed pricing information for a specific product tier, including setup fees, monthly costs, SLA terms, and available add-on modules.",
+    description: "Retrieves detailed pricing information for a specific product tier, including setup fees, monthly costs, SLA terms, and available add-on modules.",
     input_schema: {
       type: "object" as const,
-      properties: {
-        productTier: {
-          type: "string",
-          description:
-            "The product tier to get pricing for (e.g., 'Enterprise Logistics API')",
-        },
-      },
+      properties: { productTier: { type: "string", description: "The product tier to get pricing for" } },
       required: ["productTier"],
     },
   },
   {
     name: "generateProposalHTML",
-    description:
-      "Generates a complete HTML sales proposal. The HTML should be a fully self-contained, beautifully designed page using Tailwind CSS via CDN. It must include: a hero section, personalized Why Us section, pricing table, and a Sign Here contract block.",
+    description: "Generates a professional HTML sales proposal and writes it to disk. Pass structured proposal data as JSON — the tool handles all HTML rendering. Do NOT pass raw HTML.",
     input_schema: {
       type: "object" as const,
       properties: {
-        htmlContent: {
-          type: "string",
-          description:
-            "The complete HTML content of the proposal page, including <!DOCTYPE html>, <head> with Tailwind CDN, and full <body>",
+        companyName: { type: "string" },
+        tagline: { type: "string" },
+        executiveSummary: { type: "string" },
+        painPoints: { type: "array", items: { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title", "description"] } },
+        whyUsBullets: { type: "array", items: { type: "object", properties: { heading: { type: "string" }, detail: { type: "string" } }, required: ["heading", "detail"] } },
+        pricingBreakdown: {
+          type: "object",
+          properties: {
+            planName: { type: "string" }, setupFee: { type: "string" }, monthlyFee: { type: "string" }, setupDescription: { type: "string" },
+            includedFeatures: { type: "array", items: { type: "string" } },
+            sla: { type: "array", items: { type: "object", properties: { label: { type: "string" }, value: { type: "string" } }, required: ["label", "value"] } },
+            addOns: { type: "array", items: { type: "object", properties: { name: { type: "string" }, price: { type: "string" }, reason: { type: "string" } }, required: ["name", "price", "reason"] } },
+          },
+          required: ["planName", "setupFee", "monthlyFee", "setupDescription", "includedFeatures", "sla", "addOns"],
         },
+        roiProjections: { type: "array", items: { type: "object", properties: { metric: { type: "string" }, value: { type: "string" } }, required: ["metric", "value"] } },
+        estimatedAnnualSavings: { type: "string" },
       },
-      required: ["htmlContent"],
+      required: ["companyName", "tagline", "executiveSummary", "painPoints", "whyUsBullets", "pricingBreakdown", "roiProjections", "estimatedAnnualSavings"],
     },
   },
 ];
 
 // ─────────────────────────────────────────────────────────────
-//  Handler
+//  Handler — Full ReAct loop, template-injected HTML
 // ─────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const clientName: string = req.body?.clientName ?? "Globex Corp";
-  const productTier: string =
-    req.body?.productTier ?? "Enterprise Logistics API";
+  const productTier: string = req.body?.productTier ?? "Enterprise Logistics API";
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   let generatedHTML = "";
   const agentLog: { type: string; content: string }[] = [];
 
-  // Tool executor — captures HTML in memory instead of writing to disk
-  function executeTool(name: string, input: Record<string, string>): string {
+  function executeTool(name: string, input: Record<string, unknown>): string {
     switch (name) {
       case "researchClient":
-        return researchClient(input.clientName);
+        return researchClient(input.clientName as string);
       case "getPricing":
-        return getPricing(input.productTier);
+        return getPricing(input.productTier as string);
       case "generateProposalHTML":
-        generatedHTML = input.htmlContent;
-        return `Proposal HTML generated successfully (${input.htmlContent.length} chars)`;
+        generatedHTML = buildProposalHTML(input as unknown as ProposalData);
+        return `Proposal HTML generated successfully (${generatedHTML.length} chars)`;
       default:
         return `Error: Unknown tool "${name}"`;
     }
   }
 
-  const systemPrompt = `You are an elite autonomous sales agent for a cutting-edge supply chain SaaS company called "ChainForge AI". Your mission is to create a highly personalized, compelling sales proposal.
+  const systemPrompt = `You are an elite autonomous sales agent for "ChainForge AI". Your mission is to create a highly personalized sales proposal.
 
-You MUST follow this exact sequence of actions — do not skip any step:
-
+You MUST follow this exact sequence — do not skip any step:
 1. FIRST: Call researchClient to gather intelligence on the target company.
 2. SECOND: Call getPricing to get the product tier details.
-3. THIRD: Synthesize the research and pricing into a stunning HTML proposal, then call generateProposalHTML.
+3. THIRD: Synthesize everything by calling generateProposalHTML with structured proposal data. The tool handles HTML rendering — you provide content as structured JSON properties, NOT raw HTML.
 
-For the HTML proposal:
-- Use Tailwind CSS via CDN: <script src="https://cdn.tailwindcss.com"></script>
-- Design it like a premium SaaS proposal — clean, modern, professional.
-- Include these sections:
-  a) A hero/header section with ChainForge AI branding, the client's name, and a compelling tagline.
-  b) An "Executive Summary" that references specific pain points discovered in the research.
-  c) A "Why ChainForge AI" section that directly maps your capabilities to their specific challenges (be specific, cite their news/data).
-  d) A detailed pricing table with the base plan and recommended add-ons (explain why each add-on is relevant to THIS client).
-  e) An ROI projection section (estimate savings based on their reported inefficiency costs).
-  f) A "Sign Here" contract acceptance block with signature lines and date.
-- Use a sophisticated color palette (dark navy, electric blue accents, white space).
-- Make it look like it came from a top-tier design agency.
+For the proposal content:
+- Write a compelling tagline personalized to the client.
+- Write an executive summary referencing SPECIFIC pain points and numbers from the research.
+- List 3-5 pain points with titles and descriptions citing real data.
+- Write 4-5 "Why Us" bullets mapping capabilities to the client's challenges.
+- Structure pricing from getPricing data, with personalized add-on reasons.
+- Project 3-5 ROI metrics grounded in the client's reported costs.
 
 Before each tool call, explain your reasoning.`;
 
   const messages: Anthropic.Messages.MessageParam[] = [
-    {
-      role: "user",
-      content: `Create a personalized sales proposal for **${clientName}** for our **${productTier}** product. Research the client thoroughly, pull our pricing details, then generate a beautiful HTML proposal. Begin now.`,
-    },
+    { role: "user", content: `Create a personalized sales proposal for **${clientName}** for our **${productTier}** product. Research the client, pull pricing, then generate the proposal. Begin now.` },
   ];
 
   let step = 0;
@@ -261,7 +329,7 @@ Before each tool call, explain your reasoning.`;
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 16000,
+      max_tokens: 4096,
       system: systemPrompt,
       tools,
       messages,
@@ -278,44 +346,25 @@ Before each tool call, explain your reasoning.`;
       }
     }
 
-    if (response.stop_reason === "end_turn" && toolUseBlocks.length === 0) {
-      break;
-    }
+    if (response.stop_reason === "end_turn" && toolUseBlocks.length === 0) break;
 
     messages.push({ role: "assistant", content: assistantContent });
 
     if (toolUseBlocks.length > 0) {
       const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
-
       for (const toolUse of toolUseBlocks) {
-        agentLog.push({
-          type: "action",
-          content: `Called ${toolUse.name}(${JSON.stringify(toolUse.input).slice(0, 120)})`,
-        });
-
-        const result = executeTool(
-          toolUse.name,
-          toolUse.input as Record<string, string>
-        );
-
+        agentLog.push({ type: "action", content: `Called ${toolUse.name}(${JSON.stringify(toolUse.input).slice(0, 120)})` });
+        const result = executeTool(toolUse.name, toolUse.input as Record<string, unknown>);
         agentLog.push({ type: "observation", content: result.slice(0, 300) });
-
-        toolResults.push({
-          type: "tool_result",
-          tool_use_id: toolUse.id,
-          content: result,
-        });
+        toolResults.push({ type: "tool_result", tool_use_id: toolUse.id, content: result });
       }
-
       messages.push({ role: "user", content: toolResults });
     }
 
     if (response.stop_reason === "end_turn") break;
   }
 
-  if (!generatedHTML) {
-    return res.status(500).json({ error: "Agent failed to generate HTML" });
-  }
+  if (!generatedHTML) return res.status(500).json({ error: "Agent failed to generate proposal" });
 
   return res.status(200).json({ html: generatedHTML, log: agentLog });
 }
