@@ -1,27 +1,25 @@
 {
-  "name": "contract-creator",
+  "name": "sales-proposal-agent",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Autonomous Sales Proposal Agent using Anthropic SDK with ReAct loop",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev",
+    "start": "tsx agent.ts",
+    "demo": "tsx agent.ts \"Globex Corp\" \"Enterprise Logistics API\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sagehawk/Contract-Creator.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/sagehawk/Contract-Creator/issues"
-  },
-  "homepage": "https://github.com/sagehawk/Contract-Creator#readme",
-  "description": "",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.82.0",
-    "@types/node": "^25.5.0",
-    "dotenv": "^17.4.0",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vercel": "^39.0.0"
   }
 }

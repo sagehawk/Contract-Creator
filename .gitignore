@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# Environment secrets — NEVER commit
+.env
+.env.*
+!.env.example
+
+# Generated output
+proposal.html
