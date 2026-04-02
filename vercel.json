@@ -1,5 +1,8 @@
 {
   "functions": {
+    "api/stream.ts": {
+      "maxDuration": 120
+    },
     "api/generate.ts": {
       "maxDuration": 120
     }
