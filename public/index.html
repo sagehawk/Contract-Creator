@@ -7,41 +7,41 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script>
-    tailwind.config = {
-      theme: { extend: {
-        fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] },
-        animation: {
-          'fade-in': 'fadeIn .5s ease-out forwards',
-          'slide-in': 'slideIn .4s ease-out forwards',
-          'pulse-dot': 'pulseDot 2s ease-in-out infinite',
-        },
-        keyframes: {
-          fadeIn: { from:{opacity:'0'}, to:{opacity:'1'} },
-          slideIn: { from:{opacity:'0',transform:'translateY(12px)'}, to:{opacity:'1',transform:'translateY(0)'} },
-          pulseDot: { '0%,100%':{opacity:'1',transform:'scale(1)'}, '50%':{opacity:'.4',transform:'scale(.8)'} },
-        }
-      }}
-    }
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['JetBrains Mono','monospace'] },
+    }}}
   </script>
   <style>
-    body { background: #03071e; }
-    .gradient-text { background: linear-gradient(135deg,#4d9fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .glass { background: rgba(255,255,255,.025); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.07); }
-    .feed-entry { opacity:0; animation: slideIn .35s ease-out forwards; }
-    .orb { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; }
-    #proposalFrame { border:none; width:100%; height:100vh; opacity:0; transition: opacity .8s ease-in-out; }
-    #proposalFrame.visible { opacity:1; }
+    body { background:#03071e; }
+    .gradient-text { background:linear-gradient(135deg,#4d9fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .glass { background:rgba(255,255,255,.025); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.07); }
     .input-field { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); transition:all .2s; }
     .input-field:focus { background:rgba(255,255,255,.06); border-color:rgba(77,159,255,.5); box-shadow:0 0 0 3px rgba(77,159,255,.1); outline:none; }
+    .orb { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; }
+
+    /* Feed animations */
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes pulseGlow { 0%,100% { box-shadow:0 0 8px rgba(77,159,255,.15); } 50% { box-shadow:0 0 24px rgba(77,159,255,.3); } }
+    @keyframes thinkingDots { 0%,20% { opacity:.2; } 50% { opacity:1; } 80%,100% { opacity:.2; } }
+    .feed-card { animation: slideUp .4s ease-out forwards; }
+    .thinking-pulse { animation: pulseGlow 2s ease-in-out infinite; }
+    .dot-1 { animation: thinkingDots 1.4s infinite .0s; }
+    .dot-2 { animation: thinkingDots 1.4s infinite .2s; }
+    .dot-3 { animation: thinkingDots 1.4s infinite .4s; }
+
+    /* Scrollbar */
     ::-webkit-scrollbar { width:6px; }
     ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
-    ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.08); border-radius:3px; }
+
+    /* Proposal frame */
+    #proposalFrame { border:none; width:100%; height:100vh; opacity:0; transition:opacity .8s ease-in-out; }
+    #proposalFrame.visible { opacity:1; }
   </style>
 </head>
 <body class="font-sans text-white min-h-screen overflow-x-hidden">
 
-  <!-- Background orbs -->
   <div class="orb w-96 h-96 bg-blue-600/20 -top-32 -left-32"></div>
   <div class="orb w-80 h-80 bg-purple-600/15 top-1/2 -right-20"></div>
 
@@ -56,29 +56,28 @@
         </div>
         <span class="font-bold text-lg tracking-tight">ChainForge <span class="text-blue-400">AI</span></span>
       </div>
-      <div class="flex items-center gap-4">
-        <div id="timer" class="hidden text-xs font-mono text-slate-500">00:00</div>
-        <div id="tokenCount" class="hidden text-xs font-mono text-slate-600"></div>
-        <div class="flex items-center gap-1.5">
-          <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-dot"></div>
-          <span class="text-[11px] text-white/40 font-medium uppercase tracking-widest">Agent Online</span>
+      <div class="flex items-center gap-5">
+        <div id="timer" class="hidden text-sm font-mono text-blue-300 font-bold tabular-nums">00:00</div>
+        <div id="tokenCount" class="hidden text-xs font-mono text-slate-500 bg-white/5 px-2.5 py-1 rounded-full"></div>
+        <div id="navStatus" class="flex items-center gap-1.5">
+          <div id="navDot" class="w-2 h-2 rounded-full bg-emerald-400" style="animation:thinkingDots 1.4s infinite"></div>
+          <span id="navStatusText" class="text-xs text-white/40 font-semibold uppercase tracking-widest">Ready</span>
         </div>
       </div>
     </nav>
 
-    <!-- Main -->
     <div class="flex-1 flex flex-col items-center px-6 py-8">
 
       <!-- Hero -->
       <div id="heroBlock" class="text-center mb-10 transition-all duration-500">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-blue-300 font-medium mb-6 border border-blue-500/20">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-          Powered by Claude &middot; Autonomous ReAct Loop
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-400" style="animation:thinkingDots 1.4s infinite"></span>
+          Anthropic Claude &middot; ReAct Agent with Tool Calling
         </div>
         <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
           Watch the Agent<br/><span class="gradient-text">Build Your Proposal</span>
         </h1>
-        <p class="text-base text-white/40 max-w-md mx-auto">Real-time operational transparency. Every thought, tool call, and decision — live.</p>
+        <p class="text-base text-white/40 max-w-md mx-auto">Real-time operational transparency. Every thought, tool call, and decision streamed live.</p>
       </div>
 
       <!-- Input Card -->
@@ -86,30 +85,60 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           <div>
             <label class="block text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-1.5">Target Company</label>
-            <input id="clientName" type="text" value="Globex Corp" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white placeholder-white/20 text-sm font-medium"/>
+            <input id="clientName" type="text" value="Globex Corp" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white text-sm font-medium"/>
           </div>
           <div>
             <label class="block text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-1.5">Product Tier</label>
-            <input id="productTier" type="text" value="Enterprise Logistics API" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white placeholder-white/20 text-sm font-medium"/>
+            <input id="productTier" type="text" value="Enterprise Logistics API" class="input-field w-full rounded-lg px-3.5 py-2.5 text-white text-sm font-medium"/>
           </div>
         </div>
-        <button id="btnGenerate" onclick="startGeneration()" class="w-full py-3 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition-all duration-200 hover:shadow-[0_0_30px_rgba(77,159,255,.3)]">
+        <button onclick="startGeneration()" class="w-full py-3 rounded-xl font-bold text-sm tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition-all duration-200 hover:shadow-[0_0_30px_rgba(77,159,255,.3)]">
           Generate Autonomous Proposal
         </button>
       </div>
 
-      <!-- Live Agent Feed -->
-      <div id="feedContainer" class="hidden w-full max-w-3xl mx-auto flex-1 flex flex-col min-h-0">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="text-[11px] font-semibold text-white/40 uppercase tracking-widest">ReAct Loop</div>
-          <div id="stepBadge" class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-bold">Step 1</div>
-          <div class="flex-1"></div>
-          <div id="statusDot" class="flex items-center gap-1.5">
-            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse-dot"></div>
-            <span id="statusText" class="text-[11px] text-white/40 font-medium">Initializing...</span>
+      <!-- ============ LIVE AGENT FEED ============ -->
+      <div id="feedContainer" class="hidden w-full max-w-4xl mx-auto flex-1 flex flex-col min-h-0">
+
+        <!-- Pipeline progress bar -->
+        <div id="pipeline" class="flex items-center gap-0 mb-6 px-2">
+          <div id="pip-research" class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-l-xl border border-white/5 bg-white/[.02]">
+            <div class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs font-black text-white/30" id="pip-research-dot">1</div>
+            <div>
+              <div class="text-xs font-bold text-white/30" id="pip-research-label">Research Client</div>
+              <div class="text-[10px] text-white/15 font-mono">researchClient()</div>
+            </div>
+          </div>
+          <div id="pip-pricing" class="flex-1 flex items-center gap-2 px-3 py-2.5 border-y border-white/5 bg-white/[.02]">
+            <div class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs font-black text-white/30" id="pip-pricing-dot">2</div>
+            <div>
+              <div class="text-xs font-bold text-white/30" id="pip-pricing-label">Get Pricing</div>
+              <div class="text-[10px] text-white/15 font-mono">getPricing()</div>
+            </div>
+          </div>
+          <div id="pip-generate" class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-r-xl border border-white/5 bg-white/[.02]">
+            <div class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs font-black text-white/30" id="pip-generate-dot">3</div>
+            <div>
+              <div class="text-xs font-bold text-white/30" id="pip-generate-label">Generate Proposal</div>
+              <div class="text-[10px] text-white/15 font-mono">generateProposalHTML()</div>
+            </div>
           </div>
         </div>
-        <div id="feed" class="flex-1 overflow-y-auto pr-2 space-y-2 pb-4" style="max-height:calc(100vh - 200px);"></div>
+
+        <!-- Feed scroll area -->
+        <div id="feed" class="flex-1 overflow-y-auto space-y-3 pb-8 pr-1" style="max-height:calc(100vh - 240px);"></div>
+
+        <!-- Thinking indicator (shows between API calls) -->
+        <div id="thinkingBar" class="hidden mt-3 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/5 thinking-pulse">
+          <div class="flex items-center gap-3">
+            <div class="flex gap-1">
+              <div class="w-2 h-2 rounded-full bg-blue-400 dot-1"></div>
+              <div class="w-2 h-2 rounded-full bg-blue-400 dot-2"></div>
+              <div class="w-2 h-2 rounded-full bg-blue-400 dot-3"></div>
+            </div>
+            <span id="thinkingText" class="text-sm text-blue-300 font-medium">Agent is thinking...</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -126,78 +155,176 @@
   </div>
 
   <script>
-    let eventSource = null, timerInterval = null, startTime = 0;
-    let totalTokensIn = 0, totalTokensOut = 0, entryIndex = 0;
+    let eventSource=null, timerInterval=null, startTime=0;
+    let totalTokensIn=0, totalTokensOut=0;
 
-    const typeConfig = {
-      connected:   { icon:'&#9889;', label:'CONNECTED',   color:'text-blue-300',    bg:'border-blue-500/10' },
-      step:        { icon:'&#8594;', label:'STEP',        color:'text-white/70',    bg:'border-white/5' },
-      status:      { icon:'&#9702;', label:'STATUS',      color:'text-slate-400',   bg:'border-slate-500/10' },
-      reasoning:   { icon:'&#129504;', label:'REASONING', color:'text-purple-300',  bg:'border-purple-500/10' },
-      action:      { icon:'&#9881;', label:'ACTION',      color:'text-amber-300',   bg:'border-amber-500/10' },
-      observation: { icon:'&#128225;', label:'OBSERVATION',color:'text-emerald-300', bg:'border-emerald-500/10' },
-      error:       { icon:'&#10005;', label:'ERROR',      color:'text-red-400',     bg:'border-red-500/10' },
-    };
-
-    function addEntry(type, content, meta) {
-      const feed = document.getElementById('feed');
-      const cfg = typeConfig[type] ?? typeConfig.status;
-      const el = document.createElement('div');
-      el.className = `feed-entry border-l-2 ${cfg.bg} pl-4 py-2`;
-      el.style.animationDelay = `${Math.min(entryIndex * 30, 150)}ms`;
-      let h = '';
-
-      if (type === 'step') {
-        el.className = 'feed-entry pl-0 py-1';
-        h = `<div class="flex items-center gap-2 py-1"><div class="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent"></div><span class="text-[11px] font-bold text-blue-400 uppercase tracking-widest">ReAct Step ${meta?.step??'?'}</span><div class="h-px flex-1 bg-gradient-to-l from-blue-500/30 to-transparent"></div></div>`;
-      } else if (type === 'reasoning') {
-        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div><div class="mt-1.5 text-sm text-slate-300/80 leading-relaxed">${escH(content)}</div>`;
-      } else if (type === 'action') {
-        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div>
-        <div class="mt-1.5 flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 text-xs font-bold font-mono">${escH(meta?.tool??'')}</span></div>
-        ${meta?.args ? `<div class="mt-1 text-xs text-slate-500 font-mono break-all max-h-20 overflow-hidden">${escH(meta.args.slice(0,200))}</div>` : ''}`;
-      } else if (type === 'observation') {
-        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color} whitespace-nowrap mt-0.5">${cfg.icon} ${cfg.label}</span></div>
-        <div class="mt-1.5"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 text-xs font-bold font-mono">${escH(meta?.tool??'')} returned</span></div>
-        <div class="mt-1 text-xs text-slate-400 font-mono leading-relaxed max-h-32 overflow-hidden">${escH(content.slice(0,400))}${content.length>400?'...':''}</div>`;
-      } else if (type === 'error') {
-        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color}">${cfg.icon} ${cfg.label}</span></div><div class="mt-1.5 text-sm text-red-300">${escH(content)}</div>`;
-      } else {
-        h = `<div class="flex items-start gap-2"><span class="text-[10px] font-bold tracking-widest ${cfg.color}">${cfg.icon} ${cfg.label}</span></div><div class="mt-1 text-xs text-slate-400">${escH(content)}</div>`;
-      }
-
-      el.innerHTML = h;
-      feed.appendChild(el);
-      feed.scrollTop = feed.scrollHeight;
-      entryIndex++;
+    // ─── Pipeline highlighting ───
+    function activatePipeline(tool) {
+      const map = { researchClient:'research', getPricing:'pricing', generateProposalHTML:'generate' };
+      const key = map[tool]; if (!key) return;
+      const el = document.getElementById(`pip-${key}`);
+      const dot = document.getElementById(`pip-${key}-dot`);
+      const label = document.getElementById(`pip-${key}-label`);
+      el.style.background = 'rgba(77,159,255,.08)';
+      el.style.borderColor = 'rgba(77,159,255,.3)';
+      dot.style.background = 'rgba(77,159,255,.3)';
+      dot.style.color = '#4d9fff';
+      label.style.color = '#93c5fd';
+    }
+    function completePipeline(tool) {
+      const map = { researchClient:'research', getPricing:'pricing', generateProposalHTML:'generate' };
+      const key = map[tool]; if (!key) return;
+      const el = document.getElementById(`pip-${key}`);
+      const dot = document.getElementById(`pip-${key}-dot`);
+      const label = document.getElementById(`pip-${key}-label`);
+      el.style.background = 'rgba(52,211,153,.05)';
+      el.style.borderColor = 'rgba(52,211,153,.2)';
+      dot.style.background = 'rgba(52,211,153,.25)';
+      dot.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#34d399" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      label.style.color = '#6ee7b7';
     }
 
+    // ─── Thinking indicator ───
+    function showThinking(msg) {
+      document.getElementById('thinkingBar').classList.remove('hidden');
+      document.getElementById('thinkingText').textContent = msg || 'Agent is thinking...';
+    }
+    function hideThinking() {
+      document.getElementById('thinkingBar').classList.add('hidden');
+    }
+
+    // ─── Feed card builders ───
     function escH(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-    function startTimer() {
-      startTime = Date.now();
-      const el = document.getElementById('timer');
-      el.classList.remove('hidden');
-      timerInterval = setInterval(() => {
-        const s = Math.floor((Date.now()-startTime)/1000);
-        el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-      }, 250);
+    function addStepDivider(step) {
+      const feed = document.getElementById('feed');
+      const el = document.createElement('div');
+      el.className = 'feed-card flex items-center gap-3 py-3';
+      el.innerHTML = `
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>
+        <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+          <svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="text-xs font-bold text-blue-300 uppercase tracking-widest">ReAct Loop &mdash; Step ${step}</span>
+        </div>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"></div>`;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
     }
-    function stopTimer() { clearInterval(timerInterval); }
 
-    function updateTokens(i,o) {
+    function addReasoningCard(content) {
+      const feed = document.getElementById('feed');
+      const el = document.createElement('div');
+      el.className = 'feed-card rounded-xl border border-purple-500/15 bg-purple-500/[.04] p-4';
+      el.innerHTML = `
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-5 h-5 rounded-md bg-purple-500/20 flex items-center justify-center">
+            <svg class="w-3 h-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <span class="text-xs font-bold text-purple-300 uppercase tracking-widest">Agent Reasoning</span>
+        </div>
+        <div class="text-sm text-slate-200/90 leading-relaxed whitespace-pre-wrap">${escH(content)}</div>`;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function addActionCard(tool, args) {
+      const feed = document.getElementById('feed');
+      const el = document.createElement('div');
+      el.className = 'feed-card rounded-xl border border-amber-500/15 bg-amber-500/[.04] p-4';
+
+      const friendlyNames = {
+        researchClient: 'Researching Client Intelligence',
+        getPricing: 'Retrieving Pricing Data',
+        generateProposalHTML: 'Generating Proposal Document',
+      };
+
+      el.innerHTML = `
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-5 h-5 rounded-md bg-amber-500/20 flex items-center justify-center">
+            <svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <span class="text-xs font-bold text-amber-300 uppercase tracking-widest">Tool Call</span>
+          <span class="text-xs font-bold text-amber-200">&mdash; ${escH(friendlyNames[tool] || tool)}</span>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded-md bg-amber-400/10 text-amber-300 text-xs font-bold font-mono tracking-wide">${escH(tool)}()</span>
+        </div>
+        ${args ? `<div class="text-xs text-slate-400 font-mono leading-relaxed bg-black/20 rounded-lg p-3 max-h-24 overflow-y-auto break-all">${escH(args)}</div>` : ''}`;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function addObservationCard(tool, result) {
+      const feed = document.getElementById('feed');
+      const el = document.createElement('div');
+      el.className = 'feed-card rounded-xl border border-emerald-500/15 bg-emerald-500/[.04] p-4';
+
+      const friendlyNames = {
+        researchClient: 'Client Intelligence Report',
+        getPricing: 'Pricing Data Retrieved',
+        generateProposalHTML: 'Proposal Written to Disk',
+      };
+
+      el.innerHTML = `
+        <div class="flex items-center gap-2 mb-2.5">
+          <div class="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center">
+            <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <span class="text-xs font-bold text-emerald-300 uppercase tracking-widest">Observation</span>
+          <span class="text-xs font-bold text-emerald-200">&mdash; ${escH(friendlyNames[tool] || tool + ' returned')}</span>
+        </div>
+        <div class="text-xs text-slate-300 font-mono leading-relaxed bg-black/20 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">${escH(result)}</div>`;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function addSystemCard(message, type) {
+      const feed = document.getElementById('feed');
+      const el = document.createElement('div');
+      const isError = type === 'error';
+      const borderColor = isError ? 'border-red-500/15' : 'border-blue-500/15';
+      const bgColor = isError ? 'bg-red-500/[.04]' : 'bg-blue-500/[.04]';
+      const textColor = isError ? 'text-red-300' : 'text-blue-300';
+      const iconColor = isError ? 'text-red-400' : 'text-blue-400';
+      const dotBg = isError ? 'bg-red-500/20' : 'bg-blue-500/20';
+      el.className = `feed-card rounded-xl border ${borderColor} ${bgColor} p-4`;
+      el.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded-md ${dotBg} flex items-center justify-center">
+            <svg class="w-3 h-3 ${iconColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <span class="text-sm font-semibold ${textColor}">${escH(message)}</span>
+        </div>`;
+      feed.appendChild(el);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // ─── Timer ───
+    function startTimer() {
+      startTime=Date.now();
+      const el=document.getElementById('timer');
+      el.classList.remove('hidden');
+      timerInterval=setInterval(()=>{
+        const s=Math.floor((Date.now()-startTime)/1000);
+        el.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+      },250);
+    }
+    function stopTimer(){clearInterval(timerInterval);}
+
+    function updateTokens(i,o){
       totalTokensIn+=i; totalTokensOut+=o;
       const el=document.getElementById('tokenCount');
       el.classList.remove('hidden');
-      el.textContent=`${totalTokensIn.toLocaleString()} in / ${totalTokensOut.toLocaleString()} out`;
+      el.textContent=`${totalTokensIn.toLocaleString()} tokens in \u00b7 ${totalTokensOut.toLocaleString()} out`;
     }
 
-    function startGeneration() {
-      const cn = document.getElementById('clientName').value.trim()||'Globex Corp';
-      const pt = document.getElementById('productTier').value.trim()||'Enterprise Logistics API';
+    // ─── Start generation ───
+    function startGeneration(){
+      const cn=document.getElementById('clientName').value.trim()||'Globex Corp';
+      const pt=document.getElementById('productTier').value.trim()||'Enterprise Logistics API';
 
-      // Collapse inputs
-      ['heroBlock','inputCard'].forEach(id => {
+      // Collapse hero + input
+      ['heroBlock','inputCard'].forEach(id=>{
         const el=document.getElementById(id);
         el.style.maxHeight='0'; el.style.overflow='hidden'; el.style.opacity='0'; el.style.margin='0'; el.style.padding='0';
       });
@@ -205,51 +332,103 @@
       document.getElementById('feedContainer').classList.remove('hidden');
       document.getElementById('feedContainer').classList.add('flex');
       document.getElementById('feed').innerHTML='';
-      entryIndex=0; totalTokensIn=0; totalTokensOut=0;
+      totalTokensIn=0; totalTokensOut=0;
+      document.getElementById('navStatusText').textContent='Running';
+      document.getElementById('navDot').style.background='#60a5fa';
       startTimer();
+      showThinking('Connecting to Claude...');
 
       const params=new URLSearchParams({clientName:cn,productTier:pt});
       eventSource=new EventSource(`/api/stream?${params}`);
 
-      eventSource.addEventListener('connected', e=>{ const d=JSON.parse(e.data); addEntry('connected',d.message); document.getElementById('statusText').textContent='Connected'; });
-      eventSource.addEventListener('step', e=>{ const d=JSON.parse(e.data); addEntry('step','',d); document.getElementById('stepBadge').textContent=`Step ${d.step}`; });
-      eventSource.addEventListener('status', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=d.message; });
-      eventSource.addEventListener('reasoning', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent='Reasoning...'; addEntry('reasoning',d.content); });
-      eventSource.addEventListener('action', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=`Calling ${d.tool}...`; addEntry('action','',d); });
-      eventSource.addEventListener('observation', e=>{ const d=JSON.parse(e.data); document.getElementById('statusText').textContent=`${d.tool} returned`; addEntry('observation',d.result,d); });
-      eventSource.addEventListener('tokens', e=>{ const d=JSON.parse(e.data); updateTokens(d.input,d.output); });
+      let currentTool = '';
 
-      eventSource.addEventListener('complete', e=>{
+      eventSource.addEventListener('connected',e=>{
         const d=JSON.parse(e.data);
-        stopTimer();
-        document.getElementById('statusText').textContent='Proposal ready';
-        document.getElementById('statusDot').querySelector('div').className='w-1.5 h-1.5 rounded-full bg-emerald-400';
-        addEntry('connected','Proposal generated successfully. Revealing...');
-        eventSource.close(); eventSource=null;
-        setTimeout(()=>revealProposal(d.html), 1200);
+        hideThinking();
+        addSystemCard('Agent connected \u2014 beginning autonomous proposal generation','info');
+        showThinking('Agent is analyzing the task...');
       });
 
-      eventSource.addEventListener('error', e=>{
-        try{ const d=JSON.parse(e.data); addEntry('error',d.message); } catch{ addEntry('error','Connection lost'); }
+      eventSource.addEventListener('step',e=>{
+        const d=JSON.parse(e.data);
+        hideThinking();
+        addStepDivider(d.step);
+        showThinking(`Sending request to Claude (Step ${d.step})...`);
+      });
+
+      eventSource.addEventListener('status',e=>{
+        const d=JSON.parse(e.data);
+        document.getElementById('navStatusText').textContent=d.message;
+        document.getElementById('thinkingText').textContent=d.message;
+      });
+
+      eventSource.addEventListener('reasoning',e=>{
+        const d=JSON.parse(e.data);
+        hideThinking();
+        document.getElementById('navStatusText').textContent='Reasoning';
+        addReasoningCard(d.content);
+      });
+
+      eventSource.addEventListener('action',e=>{
+        const d=JSON.parse(e.data);
+        currentTool=d.tool;
+        document.getElementById('navStatusText').textContent=`Calling ${d.tool}`;
+        activatePipeline(d.tool);
+        addActionCard(d.tool, d.args);
+        showThinking(`Executing ${d.tool}()...`);
+      });
+
+      eventSource.addEventListener('observation',e=>{
+        const d=JSON.parse(e.data);
+        hideThinking();
+        completePipeline(d.tool);
+        document.getElementById('navStatusText').textContent=`${d.tool} complete`;
+        addObservationCard(d.tool, d.result);
+      });
+
+      eventSource.addEventListener('tokens',e=>{
+        const d=JSON.parse(e.data);
+        updateTokens(d.input,d.output);
+      });
+
+      eventSource.addEventListener('complete',e=>{
+        const d=JSON.parse(e.data);
+        hideThinking();
         stopTimer();
-        document.getElementById('statusText').textContent='Error';
+        document.getElementById('navStatusText').textContent='Proposal Ready';
+        document.getElementById('navDot').style.background='#34d399';
+        document.getElementById('navDot').style.animation='none';
+        addSystemCard('Proposal generated successfully \u2014 preparing reveal...','info');
+        eventSource.close(); eventSource=null;
+        setTimeout(()=>revealProposal(d.html),1500);
+      });
+
+      eventSource.addEventListener('error',e=>{
+        hideThinking();
+        try{ const d=JSON.parse(e.data); addSystemCard('Error: '+d.message,'error'); }
+        catch{ addSystemCard('Connection lost','error'); }
+        stopTimer();
+        document.getElementById('navStatusText').textContent='Error';
+        document.getElementById('navDot').style.background='#ef4444';
+        document.getElementById('navDot').style.animation='none';
         if(eventSource){eventSource.close();eventSource=null;}
       });
 
       eventSource.onerror=()=>{};
     }
 
-    function revealProposal(html) {
-      const p2=document.getElementById('phase2'), fr=document.getElementById('proposalFrame');
+    function revealProposal(html){
+      const p2=document.getElementById('phase2'),fr=document.getElementById('proposalFrame');
       p2.classList.remove('hidden');
       fr.srcdoc=html;
       fr.onload=()=>requestAnimationFrame(()=>fr.classList.add('visible'));
     }
 
-    function showFeed() {
+    function showFeed(){
       const fr=document.getElementById('proposalFrame');
       fr.classList.remove('visible');
-      setTimeout(()=>{ document.getElementById('phase2').classList.add('hidden'); fr.srcdoc=''; }, 400);
+      setTimeout(()=>{document.getElementById('phase2').classList.add('hidden');fr.srcdoc='';},400);
     }
   </script>
 </body>
