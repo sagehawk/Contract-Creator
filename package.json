@@ -4,7 +4,7 @@
   "description": "Autonomous Sales Proposal Agent using Anthropic SDK with ReAct loop",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "npx serve public -l 3000",
     "start": "tsx agent.ts",
     "demo": "tsx agent.ts \"Globex Corp\" \"Enterprise Logistics API\""
   },
@@ -20,6 +20,6 @@
     "@vercel/node": "^5.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vercel": "^39.0.0"
+    "vercel": "^50.38.2"
   }
 }
